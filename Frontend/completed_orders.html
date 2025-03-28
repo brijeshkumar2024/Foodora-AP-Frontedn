@@ -1,0 +1,127 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Completed Orders</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #28a745, #218838);
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 80%;
+            margin: auto;
+            border-collapse: collapse;
+            background: white;
+            color: black;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        th {
+            background: #28a745;
+            color: white;
+        }
+        .back-btn {
+            margin-top: 20px;
+            padding: 12px 25px;
+            background: #218838;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Completed Orders</h1>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Item Name</th>
+                <th>Quantity</th>
+                <th>Completed At</th>
+                <th>Status</th>
+                <th>Actions</th> <!-- Added new column -->
+            </tr>
+        </thead>
+        <tbody id="completed-orders-body">
+            <!-- Completed orders will be inserted here dynamically -->
+        </tbody>
+    </table>
+
+    <button class="back-btn" onclick="window.location.href='main.html'">🔙 Back</button>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            fetchCompletedOrders();
+        });
+
+        async function fetchCompletedOrders() {
+            try {
+                const response = await fetch("http://localhost:5000/completed-orders");
+                const orders = await response.json();
+                
+                const ordersTable = document.getElementById("completed-orders-body");
+                ordersTable.innerHTML = ""; // Clear existing rows
+                
+                orders.forEach(order => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${order.ORDER_ID}</td>
+                        <td>${order.ITEM_NAME}</td>
+                        <td>${order.ITEM_QUANTITY}</td>
+                        <td>${new Date(order.COMPLETED_AT).toLocaleString()}</td>
+                        <td>${order.STATUS || "Completed"}</td>
+                        <td>
+                            <button onclick="markAsUncomplete(${order.ORDER_ID}, '${order.ITEM_NAME}', ${order.ITEM_QUANTITY})">🔄 Uncomplete</button>
+                        </td>
+                    `;
+                    ordersTable.appendChild(row);
+                });
+        
+            } catch (error) {
+                console.error("❌ Error fetching completed orders:", error);
+            }
+        }
+        
+        // Move order back to live orders
+        async function markAsUncomplete(orderId, itemName, qty) {
+            try {
+                const response = await fetch("http://localhost:5000/mark-uncomplete", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ orderId, itemName, qty })
+                });
+        
+                const result = await response.json();
+                alert(result.message);
+        
+                // Refresh completed orders list
+                fetchCompletedOrders();
+            } catch (error) {
+                console.error("❌ Error marking as uncomplete:", error);
+            }
+        }
+        
+    </script>
+
+</body>
+</html>

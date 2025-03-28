@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Item</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        form {
+            margin-top: 20px;
+        }
+        label {
+            display: block;
+            margin: 5px 0;
+        }
+        input, button {
+            padding: 8px;
+            margin: 5px 0;
+            width: 200px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #007BFF;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Add Item</h2>
+
+    <!-- Add Item Form -->
+    <form id="addItemForm">
+        <label for="name">Name:</label>
+        <input type="text" id="name" placeholder="Enter Name" required>
+
+        <label for="address">Address:</label>
+        <input type="text" id="address" placeholder="Enter Address" required>
+
+        <label for="orderTime">Order Time:</label>
+        <input type="datetime-local" id="orderTime" required>
+
+        <label for="totalPrice">Total Price:</label>
+        <input type="number" id="totalPrice" placeholder="Enter Total Price" required>
+
+        <label for="contact">Contact:</label>
+        <input type="text" id="contact" placeholder="Enter Contact" required>
+
+        <button type="submit">Add Item</button>
+    </form>
+
+    <!-- Table to display the items -->
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Address</th>
+                <th>Order Time</th>
+                <th>Total Price</th>
+                <th>Contact</th>
+            </tr>
+        </thead>
+        <tbody id="userTableBody">
+            <!-- Data will be inserted here dynamically -->
+        </tbody>
+    </table>
+
+    <script>
+        // Function to fetch and display all users/items
+        async function fetchItems() {
+            const url = "http://localhost:5000/users"; // Ensure this URL matches your backend API
+            try {
+                const response = await fetch(url);
+                const users = await response.json();
+                const tableBody = document.getElementById("userTableBody");
+                tableBody.innerHTML = ""; // Clear previous data
+
+                users.forEach(user => {
+                    const row = `<tr>
+                        <td>${user.ID}</td>
+                        <td>${user.CNAME}</td>
+                        <td>${user.ADDR}</td>
+                        <td>${new Date(user.ORDER_TIME).toLocaleString()}</td>
+                        <td>₹${user.TOTAL_PRICE.toFixed(2)}</td>
+                        <td>${user.CONTACT}</td>
+                    </tr>`;
+                    tableBody.innerHTML += row;
+                });
+
+            } catch (error) {
+                console.error("Error fetching users:", error);
+            }
+        }
+
+        // Add a new item via POST request
+        async function addItem(event) {
+            event.preventDefault();
+
+            const name = document.getElementById("name").value.trim();
+            const address = document.getElementById("address").value.trim();
+            const orderTime = document.getElementById("orderTime").value;
+            const totalPrice = parseFloat(document.getElementById("totalPrice").value.trim());
+            const contact = document.getElementById("contact").value.trim();
+
+            const newItem = {
+                CNAME: name,
+                ADDR: address,
+                ORDER_TIME: orderTime,
+                TOTAL_PRICE: totalPrice,
+                CONTACT: contact
+            };
+
+            try {
+                const response = await fetch("http://localhost:5000/users", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(newItem)
+                });
+
+                if (response.ok) {
+                    alert("Item added successfully!");
+                    fetchItems(); // Reload the table with new data
+                } else {
+                    alert("Failed to add item");
+                }
+            } catch (error) {
+                console.error("Error adding item:", error);
+            }
+        }
+
+        // Load all items on page load
+        window.onload = fetchItems;
+
+        // Add event listener for form submission
+        document.getElementById("addItemForm").addEventListener("submit", addItem);
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Details</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #007BFF;
+            color: white;
+        }
+        input {
+            padding: 8px;
+            width: 180px;
+            margin-right: 10px;
+        }
+        button {
+            padding: 8px 12px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>User Details</h2>
+
+    <label for="orderId">Search by Order ID:</label>
+    <input type="text" id="orderId" placeholder="Enter Order ID">
+
+    <label for="name">Search by Name:</label>
+    <input type="text" id="name" placeholder="Enter Name">
+
+    <label for="contact">Search by Contact:</label>
+    <input type="text" id="contact" placeholder="Enter Contact">
+
+    <button onclick="fetchUsers()">Search</button>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Address</th>
+                <th>Order Time</th>
+                <th>Total Price</th>
+                <th>Contact</th>
+            </tr>
+        </thead>
+        <tbody id="userTableBody">
+            <!-- Data will be inserted here dynamically -->
+        </tbody>
+    </table>
+
+    <script>
+        async function fetchUsers() {
+            const orderId = document.getElementById("orderId").value.trim();
+            const name = document.getElementById("name").value.trim();
+            const contact = document.getElementById("contact").value.trim();
+
+            let url = "http://localhost:5000/users";
+            let params = [];
+
+            if (orderId) params.push(`id=${encodeURIComponent(orderId)}`);
+            if (name) params.push(`name=${encodeURIComponent(name)}`);
+            if (contact) params.push(`contact=${encodeURIComponent(contact)}`);
+
+            if (params.length) url += `?${params.join("&")}`;
+
+            try {
+                const response = await fetch(url);
+                const users = await response.json();
+                const tableBody = document.getElementById("userTableBody");
+
+                tableBody.innerHTML = ""; // Clear previous data
+
+                users.forEach(user => {
+                    const row = `<tr>
+                        <td>${user.ID}</td>
+                        <td>${user.CNAME}</td>
+                        <td>${user.ADDR}</td>
+                        <td>${new Date(user.ORDER_TIME).toLocaleString()}</td>
+                        <td>₹${user.TOTAL_PRICE.toFixed(2)}</td>
+                        <td>${user.CONTACT}</td>
+                    </tr>`;
+                    tableBody.innerHTML += row;
+                });
+
+            } catch (error) {
+                console.error("Error fetching users:", error);
+            }
+        }
+
+        // Load all users on page load
+        window.onload = fetchUsers;
+    </script>
+
+</body>
+</html>
